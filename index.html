@@ -21,7 +21,10 @@
     /* HEADER */
     .site-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.2rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
     .site-header h1 { font-size: 20px; font-weight: 700; color: var(--purple-dark); }
+    .header-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
     .last-updated { font-size: 11px; color: var(--text-faint); background: var(--bg); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); }
+    .github-link { font-size: 12px; font-weight: 600; color: var(--surface); background: var(--purple-mid); border: 1px solid var(--purple-mid); padding: 6px 12px; border-radius: 20px; text-decoration: none; transition: 0.2s; }
+    .github-link:hover { background: var(--purple-dark); border-color: var(--purple-dark); }
 
     /* CONTROLS */
     .controls { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.85rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
@@ -81,7 +84,10 @@
     <h1>Department of Computer Science</h1>
     <p>Find internships, research, and projects</p>
   </div>
-  <div class="last-updated" id="last-updated">Connecting...</div>
+  <div class="header-meta">
+    <div class="last-updated" id="last-updated">Connecting...</div>
+    <a class="github-link" href="https://github.com/DCS-CUSAT/opportunity-board" target="_blank" rel="noopener noreferrer">Contribute on GitHub</a>
+  </div>
 </header>
 
 <div class="controls">
