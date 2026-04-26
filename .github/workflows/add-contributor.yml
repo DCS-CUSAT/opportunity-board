@@ -1,0 +1,152 @@
+name: Add Contributor Metadata
+
+on:
+  pull_request:
+    paths:
+      - 'jobs.json'
+    types: [opened, synchronize]
+
+jobs:
+  add-contributor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch PR details
+        id: pr-info
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          AUTHOR=${{ github.event.pull_request.user.login }}
+          
+          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+          echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
+          echo "author=${AUTHOR}" >> $GITHUB_OUTPUT
+
+      - name: Analyze JSON changes and add contributor
+        id: analyze
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          const { execSync } = require('child_process');
+
+          const author = process.env.AUTHOR;
+          const prUrl = process.env.PR_URL;
+          const prNumber = process.env.PR_NUMBER;
+
+          // Get the PR's base and head commits
+          const baseRef = process.env.GITHUB_BASE_REF;
+          const headRef = process.env.GITHUB_HEAD_REF;
+
+          try {
+            // Get diff of jobs.json
+            const diff = execSync(
+              `git diff origin/${baseRef}...origin/${headRef} -- jobs.json`,
+              { encoding: 'utf8' }
+            );
+
+            // Parse current jobs.json
+            let data = JSON.parse(fs.readFileSync('jobs.json', 'utf8'));
+            let modified = false;
+            let addedCount = 0;
+
+            // Simple heuristic: check for new items (lines starting with + and containing "title":)
+            const addedLines = diff.split('\n').filter(line => 
+              line.startsWith('+') && !line.startsWith('+++')
+            );
+
+            // If there are added items, add contributor to all items without contributors
+            // OR to the newly added items
+            if (addedLines.some(line => line.includes('"title"'))) {
+              data.forEach(item => {
+                // Add contributor info if this is a new item or if it doesn't have contributors yet
+                if (!item.contributors) {
+                  item.contributors = [];
+                }
+
+                // Check if this contributor already exists
+                const contributorExists = item.contributors.some(c => c.username === author);
+                
+                if (!contributorExists && addedLines.some(line => line.includes(item.title))) {
+                  item.contributors.push({
+                    username: author,
+                    pullRequest: prUrl,
+                    addedAt: new Date().toISOString()
+                  });
+                  modified = true;
+                  addedCount++;
+                }
+              });
+
+              // If no items matched by title comparison, add to the last item
+              // (most likely the newly added one)
+              if (!modified && data.length > 0) {
+                const lastItem = data[data.length - 1];
+                if (!lastItem.contributors) {
+                  lastItem.contributors = [];
+                }
+                
+                if (!lastItem.contributors.some(c => c.username === author)) {
+                  lastItem.contributors.push({
+                    username: author,
+                    pullRequest: prUrl,
+                    addedAt: new Date().toISOString()
+                  });
+                  modified = true;
+                  addedCount++;
+                }
+              }
+
+              if (modified) {
+                fs.writeFileSync('jobs.json', JSON.stringify(data, null, 2) + '\n');
+                console.log(`✅ Added contributor metadata to ${addedCount} opportunity(ies)`);
+                console.log(`👤 Contributor: ${author}`);
+                console.log(`🔗 PR: ${prUrl}`);
+              } else {
+                console.log('ℹ️  No new items detected. Skipping contributor metadata.');
+              }
+            }
+          } catch (error) {
+            console.error('Error processing PR:', error.message);
+            process.exit(1);
+          }
+          EOF
+        env:
+          AUTHOR: ${{ steps.pr-info.outputs.author }}
+          PR_URL: ${{ steps.pr-info.outputs.pr_url }}
+          PR_NUMBER: ${{ steps.pr-info.outputs.pr_number }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+
+      - name: Commit changes if modified
+        id: commit
+        run: |
+          if git diff --quiet jobs.json; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add jobs.json
+            git commit -m "chore: add contributor metadata from PR #${{ steps.pr-info.outputs.pr_number }}"
+            git push origin ${{ github.head_ref }}
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✨ **Contributor metadata added!**\n\nYour contribution has been recorded as a contributor to the opportunity(ies) you've added. This information is stored in the JSON but hidden from the public UI.\n\n👤 **Contributor:** @${{ steps.pr-info.outputs.author }}\n\nThank you for contributing to the Opportunity Board! 🎉`
+            })

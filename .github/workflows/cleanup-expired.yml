@@ -1,0 +1,100 @@
+name: Remove Expired Opportunities
+
+on:
+  schedule:
+    # Run daily at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Check and remove expired opportunities
+        id: check-expired
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          const jsonPath = 'jobs.json';
+          const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+
+          const now = new Date();
+          const initialCount = data.length;
+
+          // Filter out expired items
+          const filtered = data.filter(item => {
+            const deadline = new Date(item.deadline);
+            return deadline > now;
+          });
+
+          const expiredCount = initialCount - filtered.length;
+          const expiredItems = data.filter(item => {
+            const deadline = new Date(item.deadline);
+            return deadline <= now;
+          });
+
+          if (expiredCount > 0) {
+            fs.writeFileSync(jsonPath, JSON.stringify(filtered, null, 2) + '\n');
+            
+            // Create summary
+            console.log(`Removed ${expiredCount} expired opportunity(ies)`);
+            console.log('Removed items:');
+            expiredItems.forEach(item => {
+              console.log(`  - ${item.title} (Deadline: ${item.deadline})`);
+            });
+
+            // Set output for PR
+            core.setOutput('expired_count', expiredCount);
+            core.setOutput('expired_list', expiredItems.map(i => `- ${i.title}`).join('\n'));
+          } else {
+            console.log('No expired opportunities found.');
+          }
+
+          EOF
+        env:
+          NODE_OPTIONS: --input-type=module
+
+      - name: Create PR if items were removed
+        if: steps.check-expired.outputs.expired_count > 0
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'chore: remove expired opportunities (auto)'
+          title: 'chore: Remove Expired Opportunities'
+          body: |
+            ## Automated Cleanup
+
+            This PR removes opportunities that have passed their deadline.
+
+            **Removed items:**
+            ${{ steps.check-expired.outputs.expired_list }}
+
+            **Total removed:** ${{ steps.check-expired.outputs.expired_count }}
+
+            ---
+            *This is an automated action run by the cleanup workflow.*
+          branch: auto/cleanup-expired
+          delete-branch: true
+          labels: 'automation, cleanup'
+          assignees: |
+            abdulhakkeempa
+
+      - name: Log cleanup status
+        run: |
+          echo "✅ Cleanup workflow completed"
+          if [ "${{ steps.check-expired.outputs.expired_count }}" != "" ]; then
+            echo "Removed ${{ steps.check-expired.outputs.expired_count }} expired opportunity(ies)"
+          fi

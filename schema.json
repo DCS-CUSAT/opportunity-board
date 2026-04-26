@@ -1,0 +1,199 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Opportunity Board Schema v2",
+  "description": "Schema for computer science opportunities data store",
+  "type": "object",
+  "required": ["version", "lastUpdated", "metadata", "opportunities"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["totalCount", "categories", "lastExpiredCheck"],
+      "properties": {
+        "totalCount": { "type": "integer", "minimum": 0 },
+        "categories": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "lastExpiredCheck": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": true
+    },
+    "opportunities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "organization",
+          "category",
+          "description",
+          "details",
+          "deadline",
+          "applicationUrl",
+          "contributors",
+          "createdAt",
+          "updatedAt",
+          "archived"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 120
+          },
+          "organization": {
+            "type": "object",
+            "required": ["name", "website"],
+            "properties": {
+              "name": { "type": "string", "minLength": 2 },
+              "website": {
+                "type": "string",
+                "anyOf": [
+                  { "format": "uri" },
+                  { "const": "internal" }
+                ]
+              }
+            },
+            "additionalProperties": true
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "Internship",
+              "Job",
+              "Research",
+              "Project",
+              "Hackathon",
+              "Conference",
+              "Workshop",
+              "Scholarship",
+              "Fellowship",
+              "Freelance",
+              "OpenSource",
+              "Grant",
+              "Competition"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 500
+          },
+          "details": {
+            "type": "object",
+            "required": ["location", "compensation", "skills"],
+            "properties": {
+              "duration": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": ["number", "integer", "null"] },
+                  "unit": { "type": "string" }
+                },
+                "additionalProperties": true
+              },
+              "location": {
+                "type": "object",
+                "required": ["city", "country", "mode"],
+                "properties": {
+                  "city": { "type": "string" },
+                  "country": { "type": "string" },
+                  "mode": { "type": "string" }
+                },
+                "additionalProperties": true
+              },
+              "compensation": {
+                "type": "object",
+                "required": ["type", "amount", "currency", "period"],
+                "properties": {
+                  "type": { "type": "string" },
+                  "amount": { "type": ["number", "integer", "string"] },
+                  "currency": { "type": "string" },
+                  "period": { "type": "string" }
+                },
+                "additionalProperties": true
+              },
+              "skills": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "additionalProperties": true
+          },
+          "requirements": {
+            "type": "object",
+            "properties": {
+              "minCGPA": { "type": "number" },
+              "yearOfStudy": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "preferredDegree": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "additionalProperties": true
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "applicationUrl": {
+            "type": "string",
+            "anyOf": [
+              { "format": "uri" },
+              { "const": "internal" }
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "contributors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["username", "pullRequest", "addedAt"],
+              "properties": {
+                "username": { "type": "string" },
+                "pullRequest": { "type": "string", "format": "uri" },
+                "addedAt": { "type": "string", "format": "date-time" }
+              },
+              "additionalProperties": true
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
