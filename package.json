@@ -1,0 +1,28 @@
+{
+  "name": "opportunity-board",
+  "version": "1.0.0",
+  "description": "Department of Computer Science - Opportunities Board",
+  "type": "module",
+  "scripts": {
+    "add:opportunity": "node scripts/add-opportunity.js",
+    "validate": "node validate.js",
+    "validate:watch": "nodemon --exec 'node validate.js' --watch jobs.json",
+    "lint": "node validate.js jobs.json",
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "opportunities",
+    "internships",
+    "jobs",
+    "research",
+    "computer-science"
+  ],
+  "author": "CS Department",
+  "license": "MIT",
+  "devDependencies": {
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.2"
+  }
+}

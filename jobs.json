@@ -1,74 +1,51 @@
-[
-  {
-    "title": "Software Engineering Intern",
-    "org": "Google",
-    "type": "Internship",
-    "location": "Bangalore, IN",
-    "skills": "Python, DSA, System Design",
-    "stipend": "₹80,000/mo",
-    "deadline": "2026-05-15",
-    "desc": "Work with Google's core engineering team on real products. 3-month summer internship.",
-    "eligibility": "3rd/4th year B.Tech, CGPA 7.5+",
-    "apply": "https://careers.google.com"
+{
+  "version": "2.0",
+  "lastUpdated": "2026-04-26T12:00:43.561Z",
+  "metadata": {
+    "totalCount": 1,
+    "categories": [
+      "Job"
+    ],
+    "lastExpiredCheck": "2026-04-26T00:00:00Z"
   },
-  {
-    "title": "ML Research Assistant",
-    "org": "IIT Madras RBCDSAI",
-    "type": "Research",
-    "location": "Chennai / Remote",
-    "skills": "Python, TensorFlow, Statistics",
-    "stipend": "₹25,000/mo",
-    "deadline": "2026-04-30",
-    "desc": "Assist in cutting-edge Machine Learning research focusing on predictive modeling and time series analysis.",
-    "eligibility": "Final year students or graduates with strong Python and Math background.",
-    "apply": "https://rbcdsai.iitm.ac.in"
-  },
-  {
-    "title": "Full Stack Developer (Fresher)",
-    "org": "Zoho Corporation",
-    "type": "Job",
-    "location": "Chennai, IN",
-    "skills": "React, Node.js, SQL",
-    "stipend": "₹6.5 - 9 LPA",
-    "deadline": "2026-06-10",
-    "desc": "Join the product team to build scalable B2B SaaS applications used by millions worldwide.",
-    "eligibility": "2025-2026 batch B.Tech CS/IT graduates.",
-    "apply": "https://careers.zoho.com"
-  },
-  {
-    "title": "Cybersecurity Analyst Intern",
-    "org": "CDAC",
-    "type": "Internship",
-    "location": "Thiruvananthapuram, IN",
-    "skills": "Networking, Linux, Cryptography",
-    "stipend": "₹15,000/mo",
-    "deadline": "2026-05-05",
-    "desc": "Work on national cybersecurity initiatives, focusing on penetration testing and secure key exchanges like Diffie-Hellman.",
-    "eligibility": "3rd year+ students. Preference for students with Cryptography coursework.",
-    "apply": "https://cdac.in/careers"
-  },
-  {
-    "title": "Smart Attendance System",
-    "org": "CS Dept Internal Project",
-    "type": "Project",
-    "location": "On-Campus",
-    "skills": "OpenCV, Python, Flutter",
-    "stipend": "Certificate + ₹5,000",
-    "deadline": "2026-04-25",
-    "desc": "Face-recognition based attendance system to be developed and deployed in production on campus.",
-    "eligibility": "Open to all semesters. Knowledge of Python and Flutter required.",
-    "apply": "internal"
-  },
+  "opportunities": [
     {
-    "title": " Attendance System",
-    "org": "CS Dept Internal Project",
-    "type": "Project",
-    "location": "On-Campus",
-    "skills": "OpenCV, Python, Flutter",
-    "stipend": "Certificate + ₹5,000",
-    "deadline": "2026-04-25",
-    "desc": "Face-recognition based attendance system to be developed and deployed in production on campus.",
-    "eligibility": "Open to all semesters. Knowledge of Python and Flutter required.",
-    "apply": "internal"
-  }
-]
+      "id": "mykare-ai-founding-voice-ai-engineer",
+      "title": "Founding Voice AI Engineer",
+      "organization": {
+        "name": "Mykare AI",
+        "website": "https://docs.google.com/forms/d/e/1FAIpQLSfRQm3JbSz1fUIQ0ww2DnqnXn_ny4K-XpiY5WF96TpYLWBXNA/viewform"
+      },
+      "category": "Job",
+      "description": "Build a voice-first, agentic AI system that manages the full patient journey -from intake to post-care.",
+      "details": {
+        "duration": {
+          "value": null,
+          "unit": "months"
+        },
+        "location": {
+          "city": "Kochi",
+          "country": "IN",
+          "mode": "On-campus"
+        },
+        "compensation": {
+          "type": "salary",
+          "amount": "unknown",
+          "currency": "INR",
+          "period": "monthly"
+        },
+        "skills": []
+      },
+      "requirements": {},
+      "deadline": "2026-05-26T23:59:59Z",
+      "applicationUrl": "https://docs.google.com/forms/d/e/1FAIpQLSfRQm3JbSz1fUIQ0ww2DnqnXn_ny4K-XpiY5WF96TpYLWBXNA/viewform",
+      "metadata": {
+        "tags": []
+      },
+      "contributors": [],
+      "createdAt": "2026-04-26T12:00:43.561Z",
+      "updatedAt": "2026-04-26T12:00:43.561Z",
+      "archived": false
+    }
+  ]
+}
