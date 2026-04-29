@@ -24,7 +24,8 @@ jobs:
           const fs = require('fs');
           const path = require('path');
           const jsonPath = 'jobs.json';
-          const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+          const raw = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+          const data = raw.opportunities;
           const now = new Date();
           const initialCount = data.length;
           // Filter out expired items
@@ -38,7 +39,10 @@ jobs:
             return deadline <= now;
           });
           if (expiredCount > 0) {
-            fs.writeFileSync(jsonPath, JSON.stringify(filtered, null, 2) + '\n');
+            raw.opportunities = filtered;
+            raw.metadata.totalCount = filtered.length;
+            raw.metadata.lastExpiredCheck = new Date().toISOString();
+            fs.writeFileSync(jsonPath, JSON.stringify(raw, null, 2) + '\n');
             // Create summary
             console.log(`Removed ${expiredCount} expired opportunity(ies)`);
             console.log('Removed items:');
