@@ -28,7 +28,6 @@ jobs:
           const data = raw.opportunities;
           const now = new Date();
           const initialCount = data.length;
-          // Filter out expired items
           const filtered = data.filter(item => {
             const deadline = new Date(item.deadline);
             return deadline > now;
@@ -43,17 +42,15 @@ jobs:
             raw.metadata.totalCount = filtered.length;
             raw.metadata.lastExpiredCheck = new Date().toISOString();
             fs.writeFileSync(jsonPath, JSON.stringify(raw, null, 2) + '\n');
-            // Create summary
-            console.log(`Removed ${expiredCount} expired opportunity(ies)`);
+            console.log('Removed ' + expiredCount + ' expired opportunity(ies)');
             console.log('Removed items:');
             expiredItems.forEach(item => {
-              console.log(`  - ${item.title} (Deadline: ${item.deadline})`);
+              console.log('  - ' + item.title + ' (Deadline: ' + item.deadline + ')');
             });
-            // Set output for PR
-            const expiredList = expiredItems.map(i => `- ${i.title}`).join('\n');
+            const expiredList = expiredItems.map(function(i) { return '- ' + i.title; }).join('\n');
             const outputFile = process.env.GITHUB_OUTPUT;
-            fs.appendFileSync(outputFile, `expired_count=${expiredCount}\n`);
-            fs.appendFileSync(outputFile, `expired_list<<ENDOFLIST\n${expiredList}\nENDOFLIST\n`);
+            fs.appendFileSync(outputFile, 'expired_count=' + expiredCount + '\n');
+            fs.appendFileSync(outputFile, 'expired_list<<ENDOFLIST\n' + expiredList + '\nENDOFLIST\n');
           } else {
             console.log('No expired opportunities found.');
           }
