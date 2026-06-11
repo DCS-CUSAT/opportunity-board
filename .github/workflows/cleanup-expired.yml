@@ -1,9 +1,9 @@
 name: Remove Expired Opportunities
 on:
   schedule:
-    # Run daily at 2:00 AM UTC
     - cron: '0 2 * * *'
   workflow_dispatch:
+
 jobs:
   cleanup:
     runs-on: ubuntu-latest
@@ -11,51 +11,44 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '18'
+          node-version: '20'
+
       - name: Check and remove expired opportunities
         id: check-expired
         run: |
           node - <<'EOF'
           const fs = require('fs');
-          const path = require('path');
           const jsonPath = 'jobs.json';
           const raw = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
           const data = raw.opportunities;
           const now = new Date();
-          const initialCount = data.length;
-          const filtered = data.filter(item => {
-            const deadline = new Date(item.deadline);
-            return deadline > now;
-          });
-          const expiredCount = initialCount - filtered.length;
-          const expiredItems = data.filter(item => {
-            const deadline = new Date(item.deadline);
-            return deadline <= now;
-          });
+          const filtered = data.filter(item => new Date(item.deadline) > now);
+          const expiredItems = data.filter(item => new Date(item.deadline) <= now);
+          const expiredCount = expiredItems.length;
           if (expiredCount > 0) {
             raw.opportunities = filtered;
             raw.metadata.totalCount = filtered.length;
             raw.metadata.lastExpiredCheck = new Date().toISOString();
             fs.writeFileSync(jsonPath, JSON.stringify(raw, null, 2) + '\n');
             console.log('Removed ' + expiredCount + ' expired opportunity(ies)');
-            console.log('Removed items:');
             expiredItems.forEach(item => {
               console.log('  - ' + item.title + ' (Deadline: ' + item.deadline + ')');
             });
-            const expiredList = expiredItems.map(function(i) { return '- ' + i.title; }).join('\n');
-            const outputFile = process.env.GITHUB_OUTPUT;
-            fs.appendFileSync(outputFile, 'expired_count=' + expiredCount + '\n');
-            fs.appendFileSync(outputFile, 'expired_list<<ENDOFLIST\n' + expiredList + '\nENDOFLIST\n');
-            fs.appendFileSync(outputFile, 'had_changes=true\n');
+            const expiredList = expiredItems.map(i => '- ' + i.title).join('\n');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'expired_count=' + expiredCount + '\n');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'expired_list<<ENDOFLIST\n' + expiredList + '\nENDOFLIST\n');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'had_changes=true\n');
           } else {
             console.log('No expired opportunities found.');
             fs.appendFileSync(process.env.GITHUB_OUTPUT, 'had_changes=false\n');
           }
           EOF
+
       - name: Commit and push changes
         if: steps.check-expired.outputs.had_changes == 'true'
         run: |
@@ -64,6 +57,7 @@ jobs:
           git add jobs.json
           git commit -m "chore: remove expired opportunities (auto)"
           git push
+
       - name: Log cleanup status
         run: |
           echo "✅ Cleanup workflow completed"
