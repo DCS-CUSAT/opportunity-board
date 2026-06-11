@@ -2,50 +2,11 @@
   "version": "2.0",
   "lastUpdated": "2026-04-26T12:00:43.561Z",
   "metadata": {
-    "totalCount": 1,
+    "totalCount": 0,
     "categories": [
       "Job"
     ],
-    "lastExpiredCheck": "2026-04-26T00:00:00Z"
+    "lastExpiredCheck": "2026-06-11T15:55:28.122Z"
   },
-  "opportunities": [
-    {
-      "id": "mykare-ai-founding-voice-ai-engineer",
-      "title": "Founding Voice AI Engineer",
-      "organization": {
-        "name": "Mykare AI",
-        "website": "https://docs.google.com/forms/d/e/1FAIpQLSfRQm3JbSz1fUIQ0ww2DnqnXn_ny4K-XpiY5WF96TpYLWBXNA/viewform"
-      },
-      "category": "Job",
-      "description": "Build a voice-first, agentic AI system that manages the full patient journey -from intake to post-care.",
-      "details": {
-        "duration": {
-          "value": null,
-          "unit": "months"
-        },
-        "location": {
-          "city": "Kochi",
-          "country": "IN",
-          "mode": "On-campus"
-        },
-        "compensation": {
-          "type": "salary",
-          "amount": "unknown",
-          "currency": "INR",
-          "period": "monthly"
-        },
-        "skills": []
-      },
-      "requirements": {},
-      "deadline": "2026-05-26T23:59:59Z",
-      "applicationUrl": "https://docs.google.com/forms/d/e/1FAIpQLSfRQm3JbSz1fUIQ0ww2DnqnXn_ny4K-XpiY5WF96TpYLWBXNA/viewform",
-      "metadata": {
-        "tags": []
-      },
-      "contributors": [],
-      "createdAt": "2026-04-26T12:00:43.561Z",
-      "updatedAt": "2026-04-26T12:00:43.561Z",
-      "archived": false
-    }
-  ]
+  "opportunities": []
 }
