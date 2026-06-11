@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,32 +50,25 @@ jobs:
             const outputFile = process.env.GITHUB_OUTPUT;
             fs.appendFileSync(outputFile, 'expired_count=' + expiredCount + '\n');
             fs.appendFileSync(outputFile, 'expired_list<<ENDOFLIST\n' + expiredList + '\nENDOFLIST\n');
+            fs.appendFileSync(outputFile, 'had_changes=true\n');
           } else {
             console.log('No expired opportunities found.');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'had_changes=false\n');
           }
           EOF
-      - name: Create PR if items were removed
-        if: steps.check-expired.outputs.expired_count > 0
-        uses: peter-evans/create-pull-request@v5
-        with:
-          commit-message: 'chore: remove expired opportunities (auto)'
-          title: 'chore: Remove Expired Opportunities'
-          body: |
-            ## Automated Cleanup
-            This PR removes opportunities that have passed their deadline.
-            **Removed items:**
-            ${{ steps.check-expired.outputs.expired_list }}
-            **Total removed:** ${{ steps.check-expired.outputs.expired_count }}
-            ---
-            *This is an automated action run by the cleanup workflow.*
-          branch: auto/cleanup-expired
-          delete-branch: true
-          labels: 'automation, cleanup'
-          assignees: |
-            abdulhakkeempa
+      - name: Commit and push changes
+        if: steps.check-expired.outputs.had_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add jobs.json
+          git commit -m "chore: remove expired opportunities (auto)"
+          git push
       - name: Log cleanup status
         run: |
           echo "✅ Cleanup workflow completed"
-          if [ "${{ steps.check-expired.outputs.expired_count }}" != "" ]; then
+          if [ "${{ steps.check-expired.outputs.had_changes }}" = "true" ]; then
             echo "Removed ${{ steps.check-expired.outputs.expired_count }} expired opportunity(ies)"
+          else
+            echo "No expired opportunities found"
           fi
