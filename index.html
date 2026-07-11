@@ -21,10 +21,7 @@
     /* HEADER */
     .site-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.2rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
     .site-header h1 { font-size: 20px; font-weight: 700; color: var(--purple-dark); }
-    .header-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
     .last-updated { font-size: 11px; color: var(--text-faint); background: var(--bg); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); }
-    .github-link { font-size: 12px; font-weight: 600; color: var(--surface); background: var(--purple-mid); border: 1px solid var(--purple-mid); padding: 6px 12px; border-radius: 20px; text-decoration: none; transition: 0.2s; }
-    .github-link:hover { background: var(--purple-dark); border-color: var(--purple-dark); }
 
     /* CONTROLS */
     .controls { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.85rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
@@ -53,15 +50,6 @@
     .type-Job        { background: var(--blue-light); color: var(--blue-dark); }
     .type-Research   { background: var(--purple-light); color: var(--purple-dark); }
     .type-Project    { background: var(--amber-light); color: var(--amber-mid); }
-    .type-Hackathon  { background: #FFE8E8; color: #C91432; }
-    .type-Conference { background: #E8F5E9; color: #2E7D32; }
-    .type-Workshop   { background: #FFF3E0; color: #E65100; }
-    .type-Fellowship { background: #F3E5F5; color: #6A1B9A; }
-    .type-Scholarship { background: #E0F2F1; color: #00695C; }
-    .type-Freelance  { background: #FCE4EC; color: #880E4F; }
-    .type-OpenSource { background: #F1F8E9; color: #33691E; }
-    .type-Grant      { background: #E1F5FE; color: #01579B; }
-    .type-Competition { background: #F8BBD0; color: #AD1457; }
 
     .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
     .tag { font-size: 11px; padding: 3px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); }
@@ -84,10 +72,7 @@
     <h1>Department of Computer Science</h1>
     <p>Find internships, research, and projects</p>
   </div>
-  <div class="header-meta">
-    <div class="last-updated" id="last-updated">Connecting...</div>
-    <a class="github-link" href="https://github.com/DCS-CUSAT/opportunity-board" target="_blank" rel="noopener noreferrer">Contribute on GitHub</a>
-  </div>
+  <div class="last-updated" id="last-updated">Connecting...</div>
 </header>
 
 <div class="controls">
@@ -102,9 +87,6 @@
     <button class="pill" data-filter="Job">Jobs</button>
     <button class="pill" data-filter="Research">Research</button>
     <button class="pill" data-filter="Project">Projects</button>
-    <button class="pill" data-filter="Hackathon">Hackathons</button>
-    <button class="pill" data-filter="Conference">Conferences</button>
-    <button class="pill" data-filter="Workshop">Workshops</button>
   </div>
 
   <div class="sort-wrap">
@@ -126,7 +108,7 @@
 </div>
 
 <script>
-  // Schema v2.0: Supports opportunities with nested structure
+  // UPDATED: Set this to your local filename or your CSV link
   const DATA_SOURCE = "jobs.json"; 
 
   let allJobs = [], activeFilter = "all", searchVal = "", sortVal = "newest";
@@ -135,10 +117,7 @@
     default: { bg: "#EEEDFE", text: "#3C3489" },
     google: { bg: "#E6F1FB", text: "#185FA5" },
     amazon: { bg: "#FAEEDA", text: "#854F0B" },
-    tcs: { bg: "#E6F1FB", text: "#0C447C" },
-    stripe: { bg: "#E6F1FB", text: "#185FA5" },
-    zoho: { bg: "#E1F5EE", text: "#085041" },
-    vercel: { bg: "#E6F1FB", text: "#185FA5" }
+    tcs: { bg: "#E6F1FB", text: "#0C447C" }
   };
 
   async function init() {
@@ -146,27 +125,36 @@
       const res = await fetch(DATA_SOURCE);
       if (!res.ok) throw new Error("Fetch failed");
 
-      const data = await res.json();
-      
-      // Handle v2.0 schema structure
-      if (data.opportunities && Array.isArray(data.opportunities)) {
-        allJobs = data.opportunities.filter(opp => !opp.archived);
-        document.getElementById("last-updated").textContent = 
-          `Updated: ${new Date(data.lastUpdated).toLocaleDateString()} at ${new Date(data.lastUpdated).toLocaleTimeString()}`;
+      const contentType = res.headers.get("content-type");
+      if (DATA_SOURCE.endsWith(".json") || (contentType && contentType.includes("application/json"))) {
+        allJobs = await res.json();
       } else {
-        throw new Error("Invalid schema format");
+        const text = await res.text();
+        allJobs = parseCSV(text);
       }
 
+      document.getElementById("last-updated").textContent = "Live Updates Active";
       render();
     } catch (e) {
       console.error(e);
       document.getElementById("grid").innerHTML = `
         <div style="grid-column:1/-1; text-align:center; padding: 3rem;">
           <p>⚠️ Error loading data. Please check if '${DATA_SOURCE}' exists.</p>
-          <p style="font-size:12px; color:var(--text-faint); margin-top:8px;">${e.message}</p>
-          <button onclick="location.reload()" style="margin-top:10px; padding:8px 16px; cursor:pointer; border:1px solid var(--border); background:var(--surface); border-radius:6px;">Retry</button>
+          <button onclick="location.reload()" style="margin-top:10px; padding:8px 16px; cursor:pointer;">Retry</button>
         </div>`;
     }
+  }
+
+  function parseCSV(text) {
+    const lines = text.trim().split("\n");
+    if (lines.length === 0) return [];
+    const headers = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/"/g, ''));
+    return lines.slice(1).map(line => {
+      const cols = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = (cols[i] || "").replace(/^"|"$/g, "").trim(); });
+      return obj;
+    }).filter(j => j.title);
   }
 
   function daysLeft(d) {
@@ -175,39 +163,16 @@
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
-  function formatLocation(details) {
-    if (!details || !details.location) return "Location TBD";
-    const loc = details.location;
-    if (loc.mode === "Remote" || loc.city === "Remote") return "Remote";
-    return `${loc.city}${loc.country ? ', ' + loc.country : ''}`;
-  }
-
-  function formatCompensation(details) {
-    if (!details || !details.compensation) return "Contact for details";
-    const comp = details.compensation;
-    if (comp.type === "certificate") {
-      return `${comp.currency ? comp.currency : ''} ${comp.amount}`.trim() || "Certificate";
-    }
-    return `${comp.currency === "INR" ? "₹" : comp.currency === "LPA" ? "₹" : "$"}${comp.amount}${comp.period === "monthly" ? "/mo" : comp.period === "yearly" ? "/yr" : ""}`;
-  }
-
-  function getSkillsArray(details) {
-    return details && details.skills ? (Array.isArray(details.skills) ? details.skills : details.skills.split(", ")) : [];
-  }
-
-  function getLogoColor(orgName) {
-    const k = (orgName || "").toLowerCase();
-    for (let key in LOGO_COLORS) { 
-      if (k.includes(key)) return LOGO_COLORS[key]; 
-    }
+  function getLogoColor(org) {
+    const k = (org || "").toLowerCase();
+    for (let key in LOGO_COLORS) { if (k.includes(key)) return LOGO_COLORS[key]; }
     return LOGO_COLORS.default;
   }
 
   function render() {
     let filtered = allJobs.filter(j => {
-      const matchType = activeFilter === "all" || j.category === activeFilter;
-      const skills = getSkillsArray(j.details).join(" ");
-      const matchSearch = [j.title, j.organization.name, skills].join(" ").toLowerCase().includes(searchVal.toLowerCase());
+      const matchType = activeFilter === "all" || j.type === activeFilter;
+      const matchSearch = [j.title, j.org, j.skills].join(" ").toLowerCase().includes(searchVal.toLowerCase());
       return matchType && matchSearch;
     });
 
@@ -215,13 +180,8 @@
       if (sortVal === "deadline") return daysLeft(a.deadline) - daysLeft(b.deadline);
       if (sortVal === "title") return a.title.localeCompare(b.title);
       if (sortVal === "stipend") {
-        const getVal = (comp) => {
-          if (!comp || !comp.amount) return 0;
-          return parseInt(comp.amount.toString().replace(/[^0-9]/g, '')) || 0;
-        };
-        const aVal = getVal(a.details?.compensation);
-        const bVal = getVal(b.details?.compensation);
-        return bVal - aVal;
+        const getVal = s => parseInt(s.replace(/[^0-9]/g, '')) || 0;
+        return getVal(b.stipend) - getVal(a.stipend);
       }
       return 0; 
     });
@@ -230,152 +190,62 @@
 
     const grid = document.getElementById("grid");
     if (!filtered.length) {
-      let emptyMessage = "";
-      
-      if (activeFilter !== "all" && allJobs.filter(j => j.category === activeFilter).length === 0) {
-        // No opportunities in this category at all
-        emptyMessage = `
-          <div style="grid-column:1/-1; text-align:center; padding:3rem;">
-            <div style="font-size:48px; margin-bottom:12px;">📭</div>
-            <h3 style="color:var(--text); margin-bottom:8px;">No ${activeFilter} opportunities yet</h3>
-            <p style="color:var(--text-muted); margin-bottom:20px;">Check back soon or try another category!</p>
-            <button onclick="document.querySelector('.pill.active').classList.remove('active'); document.querySelector('[data-filter=all]').classList.add('active'); activeFilter='all'; render();" 
-              style="padding:10px 20px; background:var(--purple-mid); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:500;">
-              View All Opportunities
-            </button>
-          </div>
-        `;
-      } else if (searchVal) {
-        // Search returned no results
-        emptyMessage = `
-          <div style="grid-column:1/-1; text-align:center; padding:3rem;">
-            <div style="font-size:48px; margin-bottom:12px;">🔍</div>
-            <h3 style="color:var(--text); margin-bottom:8px;">No matches found</h3>
-            <p style="color:var(--text-muted); margin-bottom:20px;">Try searching with different keywords or skills.</p>
-            <button onclick="document.getElementById('search').value=''; searchVal=''; render();" 
-              style="padding:10px 20px; background:var(--purple-mid); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:500;">
-              Clear Search
-            </button>
-          </div>
-        `;
-      } else {
-        // Generic no results
-        emptyMessage = `
-          <div style="grid-column:1/-1; text-align:center; padding:3rem;">
-            <div style="font-size:48px; margin-bottom:12px;">📋</div>
-            <h3 style="color:var(--text); margin-bottom:8px;">No opportunities found</h3>
-            <p style="color:var(--text-muted);">Please try again later.</p>
-          </div>
-        `;
-      }
-      
-      grid.innerHTML = emptyMessage;
+      grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem;">No matches found for "${searchVal}".</div>`;
       return;
     }
 
-    grid.innerHTML = filtered.map((j) => {
-      const lc = getLogoColor(j.organization.name);
+    grid.innerHTML = filtered.map((j, i) => {
+      const lc = getLogoColor(j.org);
       const dl = daysLeft(j.deadline);
-      const skills = getSkillsArray(j.details).slice(0, 3);
-      const tags = skills.map(s => `<span class="tag">${s}</span>`).join("");
-      const location = formatLocation(j.details);
-      const compensation = formatCompensation(j.details);
+      const tags = (j.skills || "").split(",").slice(0, 3).map(s => `<span class="tag">${s.trim()}</span>`).join("");
       
       return `
-        <div class="card" onclick="openModal('${j.id}')">
+        <div class="card" onclick="openModal(${allJobs.indexOf(j)})">
           <div class="card-header">
-            <div class="org-logo" style="background:${lc.bg};color:${lc.text}">${(j.organization.name || "?")[0].toUpperCase()}</div>
-            <span class="type-badge type-${j.category}">${j.category}</span>
+            <div class="org-logo" style="background:${lc.bg};color:${lc.text}">${(j.org || "?")[0].toUpperCase()}</div>
+            <span class="type-badge type-${j.type}">${j.type}</span>
           </div>
           <h3>${j.title}</h3>
-          <div class="org-name">${j.organization.name}</div>
+          <div class="org-name">${j.org}</div>
           <div class="tags">${tags}</div>
           <div class="card-footer">
             <div class="footer-left">
-              <div style="font-size:11px; color:var(--text-faint)">📍 ${location}</div>
+              <div style="font-size:11px; color:var(--text-faint)">📍 ${j.location}</div>
               <div class="deadline ${dl <= 7 ? 'urgent' : ''}" style="font-size:11px">⏰ ${dl <= 0 ? 'Closing Today' : dl + ' days left'}</div>
             </div>
-            <div class="stipend">${compensation}</div>
+            <div class="stipend">${j.stipend}</div>
           </div>
         </div>
       `;
     }).join("");
   }
 
-  function openModal(oppId) {
-    const j = allJobs.find(opp => opp.id === oppId);
-    if (!j) return;
-
-    const location = formatLocation(j.details);
-    const compensation = formatCompensation(j.details);
-    const applyUrl = j.applicationUrl.toLowerCase().includes("http") ? j.applicationUrl : (j.applicationUrl === "internal" ? "#" : "https://" + j.applicationUrl);
-    const skills = getSkillsArray(j.details).join(", ");
+  function openModal(idx) {
+    const j = allJobs[idx];
+    const applyUrl = j.apply.toLowerCase().includes("http") ? j.apply : "https://" + j.apply;
     
-    let requirementsHtml = "";
-    if (j.requirements) {
-      if (j.requirements.minCGPA) requirementsHtml += `<div>• Minimum CGPA: ${j.requirements.minCGPA}</div>`;
-      if (j.requirements.yearOfStudy) requirementsHtml += `<div>• Year of Study: ${j.requirements.yearOfStudy.join(", ")}</div>`;
-      if (j.requirements.preferredDegree) requirementsHtml += `<div>• Degree: ${j.requirements.preferredDegree.join(", ")}</div>`;
-    }
-
     document.getElementById("modal-content").innerHTML = `
       <button class="modal-close" onclick="closeModal()">✕</button>
       <h2 style="margin-bottom:4px;">${j.title}</h2>
-      <div style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">${j.organization.name} • ${j.category}</div>
-      
+      <div style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">${j.org} • ${j.type}</div>
       <div style="margin-bottom:20px;">
         <label style="font-size:11px; font-weight:700; color:var(--text-faint); text-transform:uppercase;">Description</label>
-        <p style="font-size:14px; margin-top:5px;">${j.description}</p>
+        <p style="font-size:14px; margin-top:5px;">${j.desc}</p>
       </div>
-
-      ${j.requirements ? `
-        <div style="margin-bottom:20px;">
-          <label style="font-size:11px; font-weight:700; color:var(--text-faint); text-transform:uppercase;">Requirements</label>
-          <div style="font-size:13px; margin-top:8px; line-height:1.6; color:var(--text-muted);">
-            ${requirementsHtml}
-          </div>
-        </div>
-      ` : ''}
-
-      ${skills ? `
-        <div style="margin-bottom:20px;">
-          <label style="font-size:11px; font-weight:700; color:var(--text-faint); text-transform:uppercase;">Required Skills</label>
-          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
-            ${skills.split(", ").map(s => `<span style="background:var(--bg); padding:4px 12px; border-radius:6px; font-size:12px;">${s}</span>`).join("")}
-          </div>
-        </div>
-      ` : ''}
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; background:var(--bg); padding:15px; border-radius:10px; margin-bottom:20px;">
-        <div>
-          <small style="color:var(--text-faint);">Compensation</small><br>
-          <strong>${compensation}</strong>
-        </div>
-        <div>
-          <small style="color:var(--text-faint);">Deadline</small><br>
-          <strong>${new Date(j.deadline).toLocaleDateString()}</strong>
-        </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-size:11px; font-weight:700; color:var(--text-faint); text-transform:uppercase;">Eligibility</label>
+        <p style="font-size:14px; margin-top:5px;">${j.eligibility}</p>
       </div>
-
-      ${j.details?.location ? `
-        <div style="padding:12px; background:var(--bg); border-radius:8px; margin-bottom:20px; font-size:13px;">
-          <div><strong>📍 Location:</strong> ${location} (${j.details.location.mode || 'On-campus'})</div>
-        </div>
-      ` : ''}
-
-      ${j.applicationUrl === "internal" 
-        ? `<div style="padding:12px; background:var(--coral-light); border-left:4px solid var(--coral-mid); border-radius:6px; margin-bottom:20px; color:var(--coral-dark); font-size:13px;">
-             ℹ️ This is an internal opportunity. Contact the CS department for details.
-           </div>`
-        : `<a href="${applyUrl}" target="_blank" class="apply-btn">Apply Now →</a>`
-      }
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; background:var(--bg); padding:15px; border-radius:10px;">
+        <div><small style="color:var(--text-faint);">Stipend</small><br><strong>${j.stipend}</strong></div>
+        <div><small style="color:var(--text-faint);">Deadline</small><br><strong>${j.deadline}</strong></div>
+      </div>
+      <a href="${applyUrl}" target="_blank" class="apply-btn">Apply Now →</a>
     `;
     document.getElementById("modal").classList.add("open");
   }
 
-  function closeModal() { 
-    document.getElementById("modal").classList.remove("open"); 
-  }
+  function closeModal() { document.getElementById("modal").classList.remove("open"); }
   
   document.getElementById("search").addEventListener("input", e => { searchVal = e.target.value; render(); });
   document.getElementById("sort").addEventListener("change", e => { sortVal = e.target.value; render(); });
